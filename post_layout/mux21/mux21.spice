@@ -1,0 +1,25 @@
+* SPICE3 file created from mux21.ext - technology: scmos
+
+.option scale=1u
+
+M1000 a_13_26# sel vdd w_0_20# pfet w=8 l=2
++  ad=40 pd=26 as=40 ps=26
+M1001 a_31_26# a_28_16# a_22_26# w_0_20# pfet w=8 l=2
++  ad=48 pd=28 as=56 ps=30
+M1002 i2 a_28_2# a_31_26# w_0_20# pfet w=8 l=2
++  ad=56 pd=30 as=0 ps=0
+M1003 a_13_n5# sel gnd Gnd nfet w=3 l=2
++  ad=23 pd=20 as=23 ps=20
+M1004 a_31_n5# a_28_2# a_22_n6# Gnd nfet w=3 l=2
++  ad=26 pd=22 as=29 ps=24
+M1005 i2 a_36_2# a_31_n5# Gnd nfet w=3 l=2
++  ad=29 pd=24 as=0 ps=0
+C0 w_0_20# a_28_16# 2.6fF
+C1 i1 sel 2.2fF
+C2 w_0_20# a_28_2# 2.4fF
+C3 w_0_20# sel 2.6fF
+C4 a_36_2# gnd! 4.0fF
+C5 i2 gnd! 7.7fF
+C6 a_28_2# gnd! 8.8fF
+C7 sel gnd! 11.5fF
+C8 vdd gnd! 12.2fF

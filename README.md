@@ -22,7 +22,7 @@ Documentation of work done for On-Chip clock multiplier / PLL workshop for OSU 1
       - [Esim netlist](#esim-netlist)
       - [Modifications](#modifications)
       - [Running simulation](#running-simulation)
-    - [3) NAND gates](#3-nand-gates)
+    - [2) NAND gates](#2-nand-gates)
       - [2 input NAND](#2-input-nand)
       - [3 input NAND](#3-input-nand)
       - [4 input NAND](#4-input-nand)
@@ -31,6 +31,16 @@ Documentation of work done for On-Chip clock multiplier / PLL workshop for OSU 1
     - [5) Voltage Controlled Oscillator](#5-voltage-controlled-oscillator)
     - [6) Clock divider](#6-clock-divider)
     - [Pre-layout simulation of whole circuit](#pre-layout-simulation-of-whole-circuit)
+- [Physical design](#physical-design)
+    - [Magic tips](#magic-tips)
+    - [1) Phase detector](#1-phase-detector)
+    - [2) Voltage controlled oscillator](#2-voltage-controlled-oscillator)
+    - [3) Frequency divider](#3-frequency-divider)
+      - [Divide by two](#divide-by-two)
+      - [Divide by eight](#divide-by-eight)
+    - [4) Multiplexer](#4-multiplexer)
+    - [4) Whole PLL](#4-whole-pll)
+- [References](#references)
 
 
 ---
@@ -122,7 +132,9 @@ We then give the Q output to another such T flip flop to get a divide by 4 unit.
 
 # Pre-layout simulation
 
-Pre-layout simulation is done using ngspice netlists generated from esim.
+First, schematics are made in esim as part of the design process. Then, spice netlists are exported from esim. These need to be modified to add test voltage sources and probes.
+
+Then, we use ngspice to run simulations. This is called pre-layout simulation since this is done before layout design.
 
 ---
 
@@ -183,7 +195,7 @@ We run the simulation by invkiing the command ```ngspice inv.cir``` where ```inv
 
 ---
 
-### 3) NAND gates
+### 2) NAND gates
 
 The phase detector requires NAND gate models. We simulate these too using esim and ngspice. The files are 
 
@@ -367,3 +379,170 @@ Signals from top to bottom
 4) ```Output clock``` from the VCO
 
 We can see that the VCO output slowly reaches the required frequency that is 8 times the reference frequency.
+
+---
+
+# Physical design
+
+Physical design is done using magic. We need a technology file that specifies the DRC rules, types of layers and other such details. This is provided as part of the PDK. Here, we have a file, ```SCN6M_SUBM.10.tech``` which gives us all such details.
+
+When we create a ```example.magic``` file, we open it using the command ```magic example.magic -T SCN6M_SUBM.tech``` provided ```SCN6M_SUBM.10.tech``` is in the same directory.
+
+There are lambda-based design rule checks (DRC) as part of the PDK that are loaded when we load the technology file. They define things like minimumsize of layers, minimum distance between layers and so on.
+
+### Magic tips
+
+- Enable toolbar to see layers
+- Enable crosshairs
+- Press ```G``` to enable/disable grid
+- Press ```z``` to zoom in, ```Z``` to zoom out
+
+- ```u``` to undo and ```U``` to redo
+- Left click to select beginning of a region
+- Right click to select end of a region
+- After selecting a region, middle click on a layer type on right toolbar to fill the region with that type
+- DRC errors are seen by highlighted areas. Type ```drc find``` in magic terminal to find all DRC errors
+- Selecting an area an middle clicking another area will copy the middle clicked area colors to the selected area
+- Seleting an area an ```Ctrl+d`    ``` on another area will remove the area on which ```Ctrl+d``` was pressed from the selected area
+
+- Select layer and type ```label <label_name>``` to label it
+- Type ```extract all``` to create netlist
+- Type ```ext2spice``` to extract to spice netlist
+
+---
+
+### 1) Phase detector
+
+File : [```post_layout/pfd/pfd.mag```](post_layout/pfd/pfd.mag)
+
+Layout
+![PFD layout](docs/post_layout/pfd_layout.png)
+
+Output
+![PFD output](docs/post_layout/pfd_out.png)
+
+Signals:
+
+1) ```Reference clock```
+2) ```VCO clock```
+3) ```UP```
+4) ```DOWN```
+
+We can see that this is similar to what we saw in the [pre-layout part](#phase-frequency-detector), but has some delay and more ringing due to parasitic elements.
+
+---
+
+### 2) Voltage controlled oscillator
+
+File : [```post_layout/vco/vco101.mag```](post_layout/vco/vco101.mag)
+
+Layout
+![PFD layout](docs/post_layout/vco_layout.png)
+
+Like the pre-layout simulation, we can also test for different frequencies post-layout. We try for ```0.545V```, ```0.5V```, ```0.6V```
+
+1) 0.5V
+![VCO output](docs/post_layout/vco_out_0.5.png)
+
+2) 0.545V
+![VCO output](docs/post_layout/vco_out_0.545.png)
+
+3) 0.6V
+![VCO output](docs/post_layout/vco_out_0.6.png)
+
+As we increase voltage, the frequency increases.
+
+---
+
+### 3) Frequency divider
+
+We have layouts for divide by 2 block and another layout for divide by 8 block which is 3 cascaded divide by 2 blocks.
+
+#### Divide by two
+
+File : [```post_layout/freqdiv2/freq_divider2.mag```](post_layout/freqdiv2/freq_divider2.mag)
+
+Layout
+![Frequency divider layout](docs/post_layout/freqdiv2_layout.png)
+
+Output
+![Frequency divider output](docs/post_layout/freqdiv2_out.png)
+
+#### Divide by eight
+
+File : [```post_layout/freqdiv8/freq_divider8.mag```](post_layout/freqdiv8/freq_divider8.mag)
+
+Layout
+![Frequency divider layout](docs/post_layout/freqdiv8_layout.png)
+
+Output
+![Frequency divider output](docs/post_layout/freqdiv8_out.png)
+
+
+Signals
+
+1) ```Input clock```
+2) ```Output clock```
+
+---
+
+### 4) Multiplexer
+
+File : [```post_layout/mux21/mux21.mag```](post_layout/mux21/mux21.mag)
+
+Layout
+![MUX layout](docs/post_layout/mux_layout.png)
+
+Output
+![MUX output](docs/post_layout/mux_out.png)
+
+Signals
+1) ```Input 0```
+2) ```Input 1```
+3) ```Select signal```
+4) ```Output signal```
+
+---
+
+### 4) Whole PLL
+
+File : [```post_layout/PLL/pll.mag```](post_layout/PLL/pll.mag)
+
+Layout
+![PLL layout](docs/post_layout/pll_layout.png)
+
+Top left : Phase detector
+
+Top right : Charge pump and filter
+
+Middle right : Voltage controlled oscillator
+
+Bottom : Clock divider
+
+Output
+![PLL output](docs/post_layout/pll_out.png)
+
+Zoomed version
+![PLL output](docs/post_layout/pll_out_zoomed.png)
+
+Signals
+
+1) ```Reference clock``` in red and ```Feedback clock``` (ater clock divider) in blue
+2) ```UP``` signal
+3) ```DOWN``` signal
+4) ```VCO input```
+5) ```VCO output```
+
+We can see that reference and feedback clocks are aligned well and output clock is roughly 8 times the frequency of the input clock.
+
+Error (filtered input to VCO) waveform
+![PLL Error](docs/post_layout/pll_out_err.png)
+
+We can see how the error rises from zero and then after PLL locks to the frequency, it has some oscillations.
+
+---
+
+# References
+
+1) [PLL design for OSU 180nm, paras gidd](https://github.com/parasgidd/avsdpll_3v3#1-introduction-to-On-chip-clock-multiplier)
+2) [Magic tutorial](https://www.youtube.com/watch?v=D32woicgdRk)
