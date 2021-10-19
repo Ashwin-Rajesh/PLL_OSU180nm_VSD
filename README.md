@@ -54,11 +54,29 @@ The circuit used here is :
 
 ![Phase detector circuit](docs/phase_detector_ckt.png)
 
-#### Charge pump
+The phase frequency detector has 2 outputs, ```UP``` and ```DOWN```. 
 
-Charge pump converts the UP, DOWN signals from the phase frequency detector to an actual voltage
+```UP``` being high means the clock is lagging with respect to reference and we need to increase clock frequency
 
-![Charge pump circuit](co)
+Obviously, ```DOWN``` being high means the clock is leading with respect to reference and we need to decrease the clock frequency
+
+#### Charge pump and RC filter
+
+Charge pump converts the ```UP```, ```DOWN``` signals from the phase frequency detector to an actual voltage that is then low pass filtered and passed to the VCO
+
+Charge pump circuit :
+
+![Charge pump circuit](docs/charge_pump_ckt.png)
+
+RC low pass filter circuit :
+
+![LPF circuit](docs/lpf_ckt.png)
+
+#### Voltage Controlled Oscillator
+
+The VCO here is a ring oscillator. The control voltage is used to vary the supply voltage of the inverters which changes their delays and therefore the frequency of the ring oscillator.
+
+![VCO](docs/vco_ckt.png)
 
 ---
 
@@ -121,7 +139,7 @@ plot v(in)+2 v(out)
 
 We run the simulation by invkiing the command ```ngspice inv.cir``` where ```inv.cir``` is the name of the spice netlist. The output looks like :
 
-![Inverter screenshot](docs/inv_screenshot.png)
+![Inverter screenshot](docs/inv_out.png)
 
 ---
 
@@ -131,167 +149,120 @@ The phase detector requires NAND gate models. We simulate these too using esim a
 
 #### 2 input NAND
 
-File : [Click here](./pre_layout/nand101.cir)
+File : [pre_layout/nand101.cir](./pre_layout/nand101.cir)
 
 Output : 
-```
-ashwin@ashwin--Y540-U:~/Projects/PLL_OSU180nm_VSD/pre_layout$ ngspice nand101.cir 
-******
-** ngspice-27 : Circuit level simulation program
-** The U. C. Berkeley CAD Group
-** Copyright 1985-1994, Regents of the University of California.
-** Please get your ngspice manual from http://ngspice.sourceforge.net/docs.html
-** Please file your bug-reports at http://ngspice.sourceforge.net/bugrep.html
-** Creation Date: Tue Dec 26 17:10:20 UTC 2017
-******
 
-Circuit: ****************************
-
-Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
-
-Warning: Pd = 0 is less than W.
-Warning: Ps = 0 is less than W.
-Warning: Pd = 0 is less than W.
-Warning: Ps = 0 is less than W.
-Warning: Pd = 0 is less than W.
-Warning: Ps = 0 is less than W.
-Warning: v2: no DC value, transient time 0 value used
-Warning: v1: no DC value, transient time 0 value used
-
-Initial Transient Solution
---------------------------
-
-Node                                   Voltage
-----                                   -------
-out                                        1.8
-in1                                          0
-n001                                    0.1066
-vdd                                        1.8
-in2                                          0
-v3#branch                         -2.37083e-12
-v2#branch                                    0
-v1#branch                                    0
-
-
-
-No. of Data Rows : 2046
-ngspice 1 -> 
-```
 ![NAND 101 output](docs/nand101_out.png)
 
 #### 3 input NAND
 
-File : [Click here](./pre_layout/nand101.cir)
+File : [pre_layout/nand301.cir](./pre_layout/nand101.cir)
 
 Output 
-```
-ashwin@ashwin--Y540-U:~/Projects/PLL_OSU180nm_VSD/pre_layout$ ngspice nand301.cir 
-******
-** ngspice-27 : Circuit level simulation program
-** The U. C. Berkeley CAD Group
-** Copyright 1985-1994, Regents of the University of California.
-** Please get your ngspice manual from http://ngspice.sourceforge.net/docs.html
-** Please file your bug-reports at http://ngspice.sourceforge.net/bugrep.html
-** Creation Date: Tue Dec 26 17:10:20 UTC 2017
-******
-
-Circuit: ****************************
-
-Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
-
-Warning: Pd = 0 is less than W.
-Warning: Ps = 0 is less than W.
-Warning: Pd = 0 is less than W.
-Warning: Ps = 0 is less than W.
-Warning: v3: no DC value, transient time 0 value used
-Warning: v2: no DC value, transient time 0 value used
-Warning: v1: no DC value, transient time 0 value used
-
-Initial Transient Solution
---------------------------
-
-Node                                   Voltage
-----                                   -------
-out                                        1.8
-in1                                          0
-n001                                  0.200584
-vdd                                        1.8
-in2                                          0
-n002                                 0.0243718
-in3                                          0
-v4#branch                         -1.64857e-12
-v3#branch                                    0
-v2#branch                                    0
-v1#branch                                    0
-
-
-
-No. of Data Rows : 2087
-ngspice 1 -> exit
-```
 
 ![NAND 301 output](docs/nand301_out.png)
 
 #### 4 input NAND
 
-File : [click here](pre_layout/nand401.cir)
+File : [pre_layout/nand401.cir](pre_layout/nand401.cir)
 
-```
-ashwin@ashwin--Y540-U:~/Projects/PLL_OSU180nm_VSD/pre_layout$ ngspice nand401.cir
-******
-** ngspice-27 : Circuit level simulation program
-** The U. C. Berkeley CAD Group
-** Copyright 1985-1994, Regents of the University of California.
-** Please get your ngspice manual from http://ngspice.sourceforge.net/docs.html
-** Please file your bug-reports at http://ngspice.sourceforge.net/bugrep.html
-** Creation Date: Tue Dec 26 17:10:20 UTC 2017
-******
-
-Circuit: ****************************
-
-Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
-
-Warning: Pd = 0 is less than W.
-Warning: Ps = 0 is less than W.
-Warning: Pd = 0 is less than W.
-Warning: Ps = 0 is less than W.
-Warning: v4: no DC value, transient time 0 value used
-Warning: v3: no DC value, transient time 0 value used
-Warning: v2: no DC value, transient time 0 value used
-Warning: v1: no DC value, transient time 0 value used
-
-Initial Transient Solution
---------------------------
-
-Node                                   Voltage
-----                                   -------
-out                                        1.8
-in1                                          0
-n001                                  0.378062
-vdd                                        1.8
-in2                                          0
-n002                                 0.0462795
-in3                                          0
-n003                                 0.0159469
-in4                                          0
-v5#branch                         -1.43241e-12
-v4#branch                                    0
-v3#branch                                    0
-v2#branch                                    0
-v1#branch                                    0
-
-
-
-No. of Data Rows : 2166
-ngspice 1 -> 
-```
+Output
 
 ![NAND 401 output](docs/nand401_out.png)
 
 ---
 
-### 2) Phase detector
+### 3) Phase detector
 
 The spice netlist for the phase detector is in this file : [```pre_layout/pfd.cir```](pre_layout/pll.cir)
 
-It 
+It uses subcircuits definitions of NAND gates and inverters mentioned before. The subcircuit of the 
+
+Output
+
+![PFD output](docs/pfd_out.png)
+
+Signals from top to bottom 
+
+1) ```Reference clock```
+2) ```VCO clock```
+3) ```UP signal```
+4) ```DOWN signal```
+
+We can see that when the signal is lagging with respect to reference (at the start), ```UP``` signal becomes high, signaling the VCO to increase frequency to compensate. 
+
+When the signal is leading with respect to reference (at the end), ```DOWN``` signal becomes high, signaling the VCO to reduce frequency to compensate.
+
+Slight ringing noise can also be observed in the output ```UP``` and ```DOWN``` signals.
+
+---
+
+### 4) Phase detector with RC filter and charge pump
+
+A simple RC low pass filter and charge pump is added to the PLL netlist. 
+
+The charge pump is defined as a netlist which is made of MOSFETS and a voltage source
+
+The RC filter part is :
+
+```
+C1 Vin_vco 0 200p
+C2 N001 0 500p
+R1 Vin_vco N001 500
+```
+
+The Phase detector from earlier part is also intergrated into a subcircuit : 
+
+```
+.subckt pfd_501 f_clk_in f_VCO up down
+XX1 N001 N005 N002 vddd 0 nand101
+XX2 N002 N008 N006 vddd 0 nand101
+XX3 N006 N007 N008 vddd 0 nand101
+XX4 N007 N010 N011 vddd 0 nand101
+XX5 N011 N009 N010 vddd 0 nand101
+XX6 N013 N012 N009 vddd 0 nand101
+XX7 f_clk_in N005 vddd 0 inv101
+XX8 f_VCO N013 vddd 0 inv101
+XX9 N002 N003 vddd 0 inv101
+XX10 N003 N004 vddd 0 inv101
+XX11 N009 N014 vddd 0 inv101
+XX12 N014 N015 vddd 0 inv101
+XX13 N004 N006 N007 N001 vddd 0 nand301
+XX14 N007 N010 N015 N012 vddd 0 nand301
+XX15 N012 down vddd 0 inv101
+XX16 N006 N002 N009 N010 vddd 0 N007 nand401
+XX17 N001 up vddd 0 inv101
+V1 vddd 0 1.8
+.ends pfd_501
+```
+
+The phase detector consists of a voltage soure and nand gates and inverters. Refer theory part for the schematic
+
+File : [```pre_layout/pfd_full.cir```](pre_layout/pfd_full.cir)
+
+First, we comment out the RC filter to see only the charge pump output.
+
+Output
+![Charge pump output](docs/pfd_chargepump_out.png)
+
+Then, we add the RC filter.
+
+Output
+![Full phase detector output](docs/pfd_full_out.png)
+
+Signals in order from top to bottom
+
+1) ```Reference clock```
+2) ```VCO clock```
+3) ```UP signal```
+4) ```DOWN signal```
+5) ```Input to VCO```
+
+Here we can see how the UP and DOWN signals are converted to pulses by the charge pump and to a continuous waveform by the RC filter. This signal is then fed to the VCO.
+
+---
+
+### 5) Voltage Controlled Oscillator
+
+
