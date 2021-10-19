@@ -213,7 +213,7 @@ plot v(in)+2 v(out)
 
 #### Running simulation
 
-We run the simulation by invkiing the command ```ngspice inv.cir``` where ```inv.cir``` is the name of the spice netlist. The output looks like :
+We run the simulation by invoking the command ```ngspice inv.cir``` where ```inv.cir``` is the name of the spice netlist. The output looks like :
 
 ![Inverter screenshot](docs/pre_layout/inv_out.png)
 
@@ -253,7 +253,7 @@ Output
 
 The spice netlist for the phase detector is in this file : [```pre_layout/pfd.cir```](pre_layout/pll.cir)
 
-It uses subcircuits definitions of NAND gates and inverters mentioned before. The subcircuit of the 
+It uses subcircuits definitions of NAND gates and inverters mentioned before. The subcircuit of the phase detector consists of multuple MOSFETs, as we can see from the circuit diagram in the theory section.
 
 Output
 
