@@ -3,6 +3,38 @@ Documentation of work done for On-Chip clock multiplier / PLL workshop for OSU 1
 
 ---
 
+## Table of contents
+
+- [PLL_OSU180nm_VSD](#pll_osu180nm_vsd)
+  - [Table of contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Tools used](#tools-used)
+  - [Theory](#theory)
+    - [Phase Locked Loop](#phase-locked-loop)
+      - [Clock multiplier using PLL](#clock-multiplier-using-pll)
+      - [Our implementation](#our-implementation)
+      - [Phase frequency detector](#phase-frequency-detector)
+      - [Charge pump and RC filter](#charge-pump-and-rc-filter)
+      - [Voltage Controlled Oscillator](#voltage-controlled-oscillator)
+      - [Frequency divider](#frequency-divider)
+- [Pre-layout simulation](#pre-layout-simulation)
+    - [1) Inverter (example)](#1-inverter-example)
+      - [Esim netlist](#esim-netlist)
+      - [Modifications](#modifications)
+      - [Running simulation](#running-simulation)
+    - [3) NAND gates](#3-nand-gates)
+      - [2 input NAND](#2-input-nand)
+      - [3 input NAND](#3-input-nand)
+      - [4 input NAND](#4-input-nand)
+    - [3) Phase detector](#3-phase-detector)
+    - [4) Phase detector with RC filter and charge pump](#4-phase-detector-with-rc-filter-and-charge-pump)
+    - [5) Voltage Controlled Oscillator](#5-voltage-controlled-oscillator)
+    - [6) Clock divider](#6-clock-divider)
+    - [Pre-layout simulation of whole circuit](#pre-layout-simulation-of-whole-circuit)
+
+
+---
+
 ## Introduction
 
 - PLL : Phase Locked Loop
@@ -78,6 +110,14 @@ The VCO here is a ring oscillator. The control voltage is used to vary the suppl
 
 ![VCO](docs/vco_ckt.png)
 
+#### Frequency divider
+
+The frequency divider is just a ripple counter using T flip flops that are made from D flip flops (with inverted output fed into input port)
+
+![Clock divider circuit](docs/clk_div_ckt.png)
+
+We then give the Q output to another such T flip flop to get a divide by 4 unit. Cascading another divide by 2 unit creates a divide by 8 unit.
+
 ---
 
 # Pre-layout simulation
@@ -139,7 +179,7 @@ plot v(in)+2 v(out)
 
 We run the simulation by invkiing the command ```ngspice inv.cir``` where ```inv.cir``` is the name of the spice netlist. The output looks like :
 
-![Inverter screenshot](docs/inv_out.png)
+![Inverter screenshot](docs/pre_layout/inv_out.png)
 
 ---
 
@@ -153,7 +193,7 @@ File : [pre_layout/nand101.cir](./pre_layout/nand101.cir)
 
 Output : 
 
-![NAND 101 output](docs/nand101_out.png)
+![NAND 101 output](docs/pre_layout/nand101_out.png)
 
 #### 3 input NAND
 
@@ -161,7 +201,7 @@ File : [pre_layout/nand301.cir](./pre_layout/nand101.cir)
 
 Output 
 
-![NAND 301 output](docs/nand301_out.png)
+![NAND 301 output](docs/pre_layout/nand301_out.png)
 
 #### 4 input NAND
 
@@ -169,7 +209,7 @@ File : [pre_layout/nand401.cir](pre_layout/nand401.cir)
 
 Output
 
-![NAND 401 output](docs/nand401_out.png)
+![NAND 401 output](docs/pre_layout/nand401_out.png)
 
 ---
 
@@ -181,7 +221,7 @@ It uses subcircuits definitions of NAND gates and inverters mentioned before. Th
 
 Output
 
-![PFD output](docs/pfd_out.png)
+![PFD output](docs/pre_layout/pfd_out.png)
 
 Signals from top to bottom 
 
@@ -244,12 +284,12 @@ File : [```pre_layout/pfd_full.cir```](pre_layout/pfd_full.cir)
 First, we comment out the RC filter to see only the charge pump output.
 
 Output
-![Charge pump output](docs/pfd_chargepump_out.png)
+![Charge pump output](docs/pre_layout/pfd_chargepump_out.png)
 
 Then, we add the RC filter.
 
 Output
-![Full phase detector output](docs/pfd_full_out.png)
+![Full phase detector output](docs/pre_layout/pfd_full_out.png)
 
 Signals in order from top to bottom
 
@@ -265,4 +305,65 @@ Here we can see how the UP and DOWN signals are converted to pulses by the charg
 
 ### 5) Voltage Controlled Oscillator
 
+File : [```pre_layout/vco.cir```](pre_layout/vco.cir)
 
+We vary the value of input voltage and view the different output waveforms. The voltage source is
+
+```V2 Vinvco 0 .5```
+
+on line No.45.
+
+We test 3 values : ```0.4```, ```0.5```,  ```0.6```.
+
+Output :
+
+1) For 0.4V input
+![VCO output for 0.4V](docs/pre_layout/vco_out_0.4.png)
+
+2) 0.5V input
+![VCO output for 0.5V](docs/pre_layout/vco_out_0.5.png)
+
+3) 0.6V input
+![VCO output for 0.4V](docs/pre_layout/vco_out_0.6.png)
+
+Signals from top to bottom
+
+1) ```Input voltage```
+2) ```Oscillator feedback signal```
+
+We can see that as we increase the voltage, the delay of the inverters reduce and so, the ring oscillator frequency increases.
+
+The voltage probed is from inside the ring oscilator and does not have clean transitions. This is fixed by the last inverter and the final output is a clean square wave.
+
+---
+
+### 6) Clock divider
+
+This is a module that demonstrated divide-by-two. We can cascade multiple of these units to create a divide-by-eight unit that we need.
+
+File : [```pre_layout/freq_div.cir```](pre_layout/freq_div.cir)
+
+Output
+![Clock divider output](docs/pre_layout/clk_div_out.png)
+
+---
+
+### Pre-layout simulation of whole circuit
+
+File : [```pre_layout/pll.ckt```](pre_layout/pll.ckt)
+
+Output
+![PLL output](docs/pre_layout/pll_out.png)
+
+Zoomed in output
+![PLL output zoomed](docs/pre_layout/pll_zoom_out.png)
+
+Signals from top to bottom
+
+1) ```Reference clock```
+2) ```UP``` signal from phase detector
+2) ```DOWN``` signal from phase detector
+3) ```Error``` signal given as input to VCO, output of LPF
+4) ```Output clock``` from the VCO
+
+We can see that the VCO output slowly reaches the required frequency that is 8 times the reference frequency.

@@ -42,13 +42,12 @@ V1 N001 0 1.8
 *______________________________________________
 
 
-V2 Vinvco 0 .5
+V2 Vinvco 0 .6
 V3 VDD 0 1.8
 
 .control
 tran .1ns 1u
-plot V(Vinvco)+2 V(osc_fb)
+plot V(Vinvco)+2 V(Osc)
 .endc
-
 
 .end
