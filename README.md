@@ -17,8 +17,9 @@ Documentation of work done for On-Chip clock multiplier / PLL workshop for OSU 1
       - [Charge pump and RC filter](#charge-pump-and-rc-filter)
       - [Voltage Controlled Oscillator](#voltage-controlled-oscillator)
       - [Frequency divider](#frequency-divider)
-- [Specification](#specification)
-- [Pre-layout simulation](#pre-layout-simulation)
+- [Theory and block level simulation (using LTSpice)](#theory-and-block-level-simulation-using-ltspice)
+    - [1) Phase detector](#1-phase-detector)
+- [Pre-layout simulation (using esim)](#pre-layout-simulation-using-esim)
     - [1) Inverter (example)](#1-inverter-example)
       - [Esim netlist](#esim-netlist)
       - [Modifications](#modifications)
@@ -34,7 +35,7 @@ Documentation of work done for On-Chip clock multiplier / PLL workshop for OSU 1
     - [Pre-layout simulation of whole circuit](#pre-layout-simulation-of-whole-circuit)
 - [Physical design](#physical-design)
     - [Magic tips](#magic-tips)
-    - [1) Phase detector](#1-phase-detector)
+    - [1) Phase detector](#1-phase-detector-1)
     - [2) Voltage controlled oscillator](#2-voltage-controlled-oscillator)
     - [3) Frequency divider](#3-frequency-divider)
       - [Divide by two](#divide-by-two)
@@ -71,7 +72,7 @@ A phase locked loop is a closed loop feedback system. The output is generated fr
 
 Below is an abstract block diagram of the PLL
 
-![PLL block diagram](docs/pll.drawio.svg)
+![PLL block diagram](docs/ltspice/phase_det_ckt1.png)
 
 #### Clock multiplier using PLL
 
@@ -91,7 +92,7 @@ It has a multiplexer in the feedback loop to provide the option of directly feed
 
 The phase detector measures the phase differencce between the output clock signal and the input clock signal. It is the error computing block from a control systems point of view.
 
-![Phase detector](docs/phase_detector.png)
+![Phase detector](docs/ltspice/phase_det_ckt1.png)
 
 The circuit used here is :
 
@@ -131,34 +132,56 @@ We then give the Q output to another such T flip flop to get a divide by 4 unit.
 
 ---
 
-# Specification
+# Theory and block level simulation (using LTSpice)
 
-| Parameter | Description                       | Min  | Type        | Max   | Unit | Condition                                                                            |
-|-----------|-----------------------------------|------|-------------|-------|------|--------------------------------------------------------------------------------------|
-| VDD       | Digital supply voltage            |      | 1.8         |       | V    | T=-40 to 150C                                                                        |
-| FCLKREF   | Reference clock frequency         | 5    | 10          | 12.5  | MHz  |                                                                                      |
-| FCLKOUT   | Output clock frequency            | 39.7 | 80.91       | 99.81 | MHz  | PLL mode, T=27C, VDD=1.8                                                             |
-| FCLKOUT   | Output clock frequency            |      |             |       | MHz  | VCO mode, T=27C, VDD=1.8                                                             |
-| DC        | Duty Cycle                        | 48   |             | 52    | %    | T=-40 to 150C                                                                        |
-| IBCP      | Bias current for VCO              |      |             |       | uA   |                                                                                      |
-| VVCO      | Oscillatror control input voltage | .557 |             | 0.62  | V    | Vin_vco = 0V at t = 0 (.uic)                                                         |
-| JRMS      | Jitter (rms)                      |      | future work |       | ps   | PLL mode, FCLKREF = 10MHz                                                            |
-| TSET      | Settling Time                     | 5.2  | 5           | 4.6   | us   | start from EN_CP and report 2 values; one at FCLKOUT=40MHz and one at FCLKOUT=100MHz |
-| CL        | Load Capacitance                  |      |             |       | pF   |                                                                                      |
-| IDDA      | Analog Supply current             |      |             |       | ua   | VVCO=0.8V, VCO mode                                                                  |
-| IDDA      | Analog Supply current             |      |             |       | ua   | FCLKREF=10MHz, PLL mode                                                              |
-| IDDA      | Analog Supply current             |      |             |       | pa   | EN_VCO=0, EN_CP=0, FCLKREF=0                                                         |
-| IDDD      | Digital Supply Current            |      |             |       | uA   | VVCO=0.8V, VCO mode                                                                  |
-| IDDD      | Digital Supply Current            |      |             |       | uA   | FCLKREF=10MHz, PLL mode                                                              |
-| IDDD      | Digital Supply Current            |      |             |       | uA   | EN_VCO=0, EN_CP=0, FCLKREF=0                                                         |
+The original author, Mr Paras Gidd worked using esim. The circuits generated and how they are simulated can be seen in the section [Pre-layout simulation (using esim)](#pre-layout-simulation-using-esim)
 
 ---
 
-# Pre-layout simulation
+### 1) Phase detector
 
-First, schematics are made in esim as part of the design process. Then, spice netlists are exported from esim. These need to be modified to add test voltage sources and probes.
+**Phase detector circuit** : 
 
-Then, we use ngspice to run simulations. This is called pre-layout simulation since this is done before layout design.
+![](docs/ltspice/phase_det_ckt1.png)
+
+Note : It does not matter if clock is positive triggered or negative triggered
+
+**Input signals** :
+1) ```ref_clk``` : Reference clock signal
+2) ```fb_clk``` : Feedback signal from VCO
+
+**Output signals** :
+1) ```UP``` : Signal to the VCO to increase the frequency
+2) ```DOWN``` : Signal to the VCO to decrease the frequency
+
+**Working** :
+```UP``` signal signals the VCO to increase clock frequency and ```DOWN``` signal signals the VCO to decrease the clock frequency in order to reduce the phase difference.
+
+We detect which clock edge happens first. If the reference clock edge happens first, it means feedback clock is lagging, so we need to increase clock period or decrease frequency to let it catch up. If feedback clock edge happens first, it means feedback clock is leading so we need to reduce the time period or increase frequency to close the gap.
+
+**Simulation 1** : Generated clock frequency < Reference clock frequency
+
+![](docs/ltspice/phase_det_out1.png)
+
+**Simulation 2** : Generated clock frequency > Reference clock frequency
+
+![](docs/ltspice/phase_det_out2.png)
+
+**Signals** from top to bottom :
+1) ```DOWN```
+2) ```ref_clk``` (green)
+3) ```fb_clk``` (red)
+4) ```UP```
+
+---
+
+
+
+---
+
+# Pre-layout simulation (using esim)
+
+First, the circuit is simulated using discrete components at the gate or transistor levels. This is to verify that our design works before designing the layout for the individual blocks.
 
 ---
 
